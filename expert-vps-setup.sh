@@ -202,40 +202,41 @@ if [[ "$INSTALL_SCANNER" =~ ^[Yy]$ ]]; then
     # Set ClamAV database update schedule
     (crontab -l 2>/dev/null; echo "30 1 * * * sudo freshclam --quiet") | crontab -
     
-# 7c. Determine Unified Cron Time
+    # 7c. Determine Unified Cron Time
     SCANNER_CRON_TIME=""
     case $SCANNER_FREQ in
-        daily) SCANNER_CRON_TIME="30 2 * * *";; # 2:30 AM daily
-        weekly) SCANNER_CRON_TIME="30 2 * * 1";; # 2:30 AM Monday
-        monthly) SCANNER_CRON_TIME="30 2 1 * *";; # 2:30 AM 1st of month
+        daily)   SCANNER_CRON_TIME="30 2 * * *" ;; # 2:30 AM daily
+        weekly)  SCANNER_CRON_TIME="30 2 * * 1" ;; # 2:30 AM Monday
+        monthly) SCANNER_CRON_TIME="30 2 1 * *" ;; # 2:30 AM 1st of month
+        *)       SCANNER_CRON_TIME="0 2 * * *" ;;  # FIXED: fallback to 2:00 AM daily
     esac
-    
-    # 7d. Set up Maldet scan cron and ClamAV update
-    MALDET_SCAN_CMD="sudo /usr/local/sbin/maldet -b -a /home/*/public_html" 
-    
-    # Initialize a temp file with existing cron jobs
-    crontab -l 2>/dev/null > /tmp/cron_jobs.tmp
-    
-    # Append the ClamAV and Maldet entries cleanly using printf
-    printf "30 1 * * * sudo freshclam --quiet\n" >> /tmp/cron_jobs.tmp # ClamAV update
-    printf "%s %s\n" "$SCANNER_CRON_TIME" "$MALDET_SCAN_CMD" >> /tmp/cron_jobs.tmp # Maldet scan
+
+    # 7d. Set up Maldet scan cron (Maldet handles the integrated scan)
+    MALDET_SCAN_CMD="sudo /usr/local/sbin/maldet -b -a /home/*/public_html"
+
+    # FIXED: only write cron if SCANNER_CRON_TIME is not empty
+    if [ -n "$SCANNER_CRON_TIME" ]; then
+        (crontab -l 2>/dev/null; echo "$SCANNER_CRON_TIME $MALDET_SCAN_CMD") | crontab -
+        echo "✅ Integrated Maldet/ClamAV installed. Scan scheduled for $SCANNER_FREQ."
+    else
+        echo "❌ SCANNER_CRON_TIME not set, skipping cron setup."
+    fi
     
     echo "✅ Integrated Maldet/ClamAV installed. Scan scheduled for $SCANNER_FREQ."
 fi
 
-# --- 8. CRONTAB SETUP FOR SYSTEM MAINTENANCE (MONDAY - CONSOLIDATED) ---
-echo "--- Setting up Scheduled Maintenance Crontab for Monday Morning (Consolidated) ---"
 
-# Append all maintenance cron jobs cleanly
-printf "0 3 * * 1 sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt clean\n" >> /tmp/cron_jobs.tmp # Weekly Upgrade
-printf "30 3 1-7,15-21 * 1 sudo mysqlcheck -o --all-databases\n" >> /tmp/cron_jobs.tmp # Bi-Weekly DB Opt
-printf "0 4 * * 1 sudo bash -c '[ -f /var/run/reboot-required ] && reboot'\n" >> /tmp/cron_jobs.tmp # Conditional Reboot
+# --- 8. CRONTAB SETUP FOR SYSTEM MAINTENANCE (MONDAY) ---
+echo "--- Setting up Scheduled Maintenance Crontab for Monday Morning ---"
 
-# Final application of ALL cron jobs at once
-crontab /tmp/cron_jobs.tmp
+# Weekly Full Upgrade/Cleanup (Monday 03:00 AM)
+(crontab -l 2>/dev/null; echo "0 3 * * 1 sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt clean") | crontab -
 
-# Clean up temp file
-rm /tmp/cron_jobs.tmp
+# Bi-Weekly Database Optimization (1st-7th and 15th-21st day of month, only on Monday 03:30 AM)
+(crontab -l 2>/dev/null; echo "30 3 1-7,15-21 * 1 sudo mysqlcheck -o --all-databases") | crontab -
+
+# Weekly Conditional Reboot (Monday 04:00 AM)
+(crontab -l 2>/dev/null; echo "0 4 * * 1 sudo bash -c '[ -f /var/run/reboot-required ] && reboot'") | crontab -
 
 echo "✅ All Maintenance and Security Schedules Configured."
 
@@ -245,8 +246,6 @@ echo "Remember: Install ModSecurity/WAF through your control panel AFTER install
 sleep 10
 
 sudo reboot
-
-
 
 
 
