@@ -168,7 +168,7 @@ if [[ "$INSTALL_SCANNER" =~ ^[Yy]$ ]]; then
     
     # 7a. Maldet Installation
     cd /tmp
-    wget -qO maldet.tar.gz http://www.rfxn.com/downloads/maldet-current.tar.gz
+    wget -qO maldet.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
     tar -xzf maldet.tar.gz
     cd maldet-*
     sudo ./install.sh
@@ -221,4 +221,5 @@ echo "✅ All Maintenance and Security Schedules Configured."
 echo "--- Expert VPS Setup Complete! System will now reboot in 10 seconds. ---"
 echo "Remember: Install ModSecurity/WAF through your control panel AFTER installation for maximum protection."
 sleep 10
+
 sudo reboot
