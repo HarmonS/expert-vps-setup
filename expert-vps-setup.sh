@@ -102,7 +102,7 @@ if [[ "$INSTALL_SCANNER" =~ ^[Yy]$ ]]; then PACKAGE_LIST="$PACKAGE_LIST clamav c
 
 echo ""
 echo "--- 2. SYSTEM UPDATE & UTILITY INSTALLATION ---"
-sudo apt update
+sudo apt update && sudo apt upgrade -y
 sudo apt install -y $PACKAGE_LIST
 
 
@@ -226,4 +226,5 @@ echo "Remember: Install ModSecurity/WAF through your control panel AFTER install
 sleep 10
 
 sudo reboot
+
 
