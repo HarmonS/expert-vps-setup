@@ -193,6 +193,9 @@ if [[ "$INSTALL_SCANNER" =~ ^[Yy]$ ]]; then
     echo "   -> Enabling ClamAV daemon..."
     sudo systemctl enable clamav-daemon
     sudo systemctl start clamav-daemon
+    # Add a delay to wait for the daemon to release the log file lock
+    sleep 5 
+    sudo freshclam
     # Run freshclam immediately to populate database
     echo "   -> Updating ClamAV database..."
     sudo freshclam
@@ -235,6 +238,7 @@ echo "Remember: Install ModSecurity/WAF through your control panel AFTER install
 sleep 10
 
 sudo reboot
+
 
 
 
