@@ -8,11 +8,14 @@ echo "--- Starting Interactive VPS Setup Script (Final Version) ---"
 # Function to get frequency input
 get_frequency() {
     local prompt_msg=$1
-    local default_freq="daily"
+    local default_freq="daily" # This variable is actually unused, but we'll leave it.
     local freq=""
     
     echo ""
-    echo "Scan Frequencies: 1) Daily, 2) Weekly, 3) Monthly"
+    echo "Scan Frequencies:"
+    echo "1) Daily (Runs every day at 2:30 AM)"
+    echo "2) Weekly (Runs every Monday at 2:30 AM)"
+    echo "3) Monthly (Runs on the 1st day of the month at 2:30 AM)"
     while true; do
         read -r -p "$prompt_msg (1/2/3, default: 1): " freq_choice
         freq_choice=${freq_choice:-1}
@@ -223,3 +226,4 @@ echo "Remember: Install ModSecurity/WAF through your control panel AFTER install
 sleep 10
 
 sudo reboot
+
