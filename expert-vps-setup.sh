@@ -171,9 +171,18 @@ if [[ "$INSTALL_SCANNER" =~ ^[Yy]$ ]]; then
     
     # 7a. Maldet Installation
     cd /tmp
-    wget -qO maldet.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
-    tar -xzf maldet.tar.gz
-    cd maldet-*
+    wget -O maldet.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
+    if [ ! -s maldet.tar.gz ]; then
+    echo "❌ Maldet download failed — empty file"
+    exit 1
+    fi
+    tar -xzf maldet.tar.gz || { echo "❌ Extraction failed"; exit 1; }
+    DIR=$(find . -maxdepth 1 -type d -name "mald*" | head -n 1)
+    if [ -z "$DIR" ]; then
+    echo "❌ No Maldet directory found after extraction"
+    exit 1
+    fi
+    cd "$DIR"
     sudo ./install.sh
     
     # 7b. ClamAV Integration Configuration
@@ -226,5 +235,6 @@ echo "Remember: Install ModSecurity/WAF through your control panel AFTER install
 sleep 10
 
 sudo reboot
+
 
 
